@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مكتب القزاز للبرمجيات | حلول وتطبيقات الويب والأنظمة</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Arabic Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDKs (v9 Compat for standalone HTML) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#0284c7',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Cairo', sans-serif; }
+        .glass-header {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+        }
+        .admin-editable:hover {
+            outline: 2px dashed #3b82f6;
+            outline-offset: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-cyan-500 selection:text-white">
+
+    <!-- Admin Notification Banner -->
+    <div id="admin-bar" class="hidden sticky top-0 z-50 bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-700 text-white px-4 py-2 text-sm flex flex-wrap justify-between items-center shadow-lg border-b border-amber-400/30">
+        <div class="flex items-center gap-2">
+            <i class="fa-solid fa-user-shield text-lg animate-pulse"></i>
+            <span class="font-bold">وضع المدير مفعّل (Firebase Cloud Live Mode)</span>
+            <span class="text-xs bg-black/20 px-2 py-0.5 rounded-full">يمكنك التعديل المباشر على النصوص بالنقر عليها</span>
+        </div>
+        <div class="flex items-center gap-2 mt-2 sm:mt-0">
+            <button onclick="openChangePasswordModal()" class="bg-black/30 hover:bg-black/50 px-3 py-1 rounded text-xs transition flex items-center gap-1">
+                <i class="fa-solid fa-key"></i> تغيير كلمة السر
+            </button>
+            <button onclick="logoutAdmin()" class="bg-rose-700 hover:bg-rose-800 px-3 py-1 rounded text-xs font-bold transition flex items-center gap-1">
+                <i class="fa-solid fa-right-from-bracket"></i> خروج
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Navigation Bar -->
+    <nav class="sticky top-0 z-40 glass-header border-b border-slate-800/80 transition-all">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center text-white text-2xl font-black shadow-lg shadow-cyan-500/20 border border-cyan-400/30">
+                    <i class="fa-solid fa-code"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black bg-gradient-to-r from-white via-slate-200 to-cyan-400 bg-clip-text text-transparent" id="site-title-text" data-key="siteTitle">
+                        مكتب القزاز للبرمجيات
+                    </h1>
+                    <p class="text-xs text-cyan-400 font-semibold" id="site-subtitle-text" data-key="siteSubtitle">
+                        El-Qazzaz Software Office
+                    </p>
+                </div>
+            </div>
+
+            <div class="hidden md:flex items-center gap-8 text-sm font-bold text-slate-300">
+                <a href="#services" class="hover:text-cyan-400 transition">الخدمات</a>
+                <a href="#projects" class="hover:text-cyan-400 transition">معرض الأعمال</a>
+                <a href="#about" class="hover:text-cyan-400 transition">من نحن</a>
+                <a href="#contact" class="hover:text-cyan-400 transition">تواصل معنا</a>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button id="admin-login-btn" onclick="openLoginModal()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3.5 py-2 rounded-xl font-bold transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-lock text-cyan-400"></i> دخول المدير
+                </button>
+                <a href="#contact" class="hidden sm:flex bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-sm font-bold px-5 py-2.5 rounded-xl shadow-lg shadow-cyan-600/20 border border-cyan-400/20 transition items-center gap-2">
+                    <span>طلب مشروع</span>
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative py-20 lg:py-32 overflow-hidden bg-slate-950">
+        <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#0284c7_1px,transparent_1px)] [background-size:16px_16px]"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+            <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 text-xs font-bold mb-6 shadow-inner">
+                <i class="fa-solid fa-sparkles text-amber-400"></i> حلول برمجية متطورة مصممة خصيصاً لأعمالك
+            </span>
+            <h1 class="text-4xl sm:text-6xl font-black text-white tracking-tight leading-tight max-w-4xl mx-auto mb-6" id="hero-heading" data-key="heroHeading">
+                نحول أفكارك الرقمية إلى واقع برمجي مستقر واحترافي
+            </h1>
+            <p class="text-slate-400 text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed font-normal" id="hero-subheading" data-key="heroSubheading">
+                متخصصون في تطوير تطبيقات الويب التفاعلية، لوحات التحكم الإدارية، وأنظمة إدارة الأعمال والربط التلقائي بذكاء وسرعة.
+            </p>
+            <div class="flex flex-wrap justify-center gap-4">
+                <a href="#projects" class="bg-cyan-600 hover:bg-cyan-500 text-white font-bold px-8 py-3.5 rounded-xl shadow-lg shadow-cyan-600/30 transition flex items-center gap-2">
+                    <span>استكشف الأعمال</span>
+                    <i class="fa-solid fa-laptop-code"></i>
+                </a>
+                <a href="https://wa.me/201000000000" target="_blank" class="bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 font-bold px-8 py-3.5 rounded-xl transition flex items-center gap-2">
+                    <i class="fa-brands fa-whatsapp text-emerald-400 text-lg"></i>
+                    <span>تواصل واتساب</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="py-20 bg-slate-900/60 border-y border-slate-800/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-end mb-12">
+                <div>
+                    <h2 class="text-3xl font-black text-white mb-2 flex items-center gap-3">
+                        <i class="fa-solid fa-cubes text-cyan-500"></i> خدماتنا البرمجية
+                    </h2>
+                    <p class="text-slate-400">باقة متكاملة من الحلول البرمجية الذكية لخدمة مؤسستك</p>
+                </div>
+                <button id="add-service-btn" onclick="openServiceModal()" class="hidden bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-sm transition flex items-center gap-2 shadow-lg">
+                    <i class="fa-solid fa-plus"></i> إضافة خدمة جديدة
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="services-grid">
+                <!-- Dynamic Content via Firestore -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects Portfolio Section -->
+    <section id="projects" class="py-20 bg-slate-950">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-end mb-12">
+                <div>
+                    <h2 class="text-3xl font-black text-white mb-2 flex items-center gap-3">
+                        <i class="fa-solid fa-layer-group text-cyan-500"></i> معرض الأعمال والمشاريع
+                    </h2>
+                    <p class="text-slate-400">نماذج متميزة تم إنشاؤها وتطويرها بمكتب القزاز</p>
+                </div>
+                <button id="add-project-btn" onclick="openProjectModal()" class="hidden bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-sm transition flex items-center gap-2 shadow-lg">
+                    <i class="fa-solid fa-plus"></i> إضافة مشروع جديد
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="projects-grid">
+                <!-- Dynamic Content via Firestore -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact" class="bg-slate-900 border-t border-slate-800 py-12 text-slate-400 text-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+            <div>
+                <h3 class="text-white font-bold text-lg mb-3">مكتب القزاز للبرمجيات</h3>
+                <p class="text-slate-400 leading-relaxed mb-4">متخصصون في تصميم وتطوير تطبيقات الويب الحيوية والأنظمة الإدارية الذكية.</p>
+                <p class="text-xs text-slate-500">© 2026 مكتب القزاز للبرمجيات. جميع الحقوق محفوظة.</p>
+            </div>
+            <div>
+                <h4 class="text-white font-bold mb-3">روابط سريعة</h4>
+                <ul class="space-y-2">
+                    <li><a href="#services" class="hover:text-cyan-400">الخدمات</a></li>
+                    <li><a href="#projects" class="hover:text-cyan-400">معرض الأعمال</a></li>
+                    <li><a href="#contact" class="hover:text-cyan-400">الدعم والتواصل</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-white font-bold mb-3">تواصل معنا</h4>
+                <p class="mb-2"><i class="fa-solid fa-envelope text-cyan-400 ml-2"></i> info@elqazzaz-soft.com</p>
+                <p class="mb-2"><i class="fa-solid fa-phone text-cyan-400 ml-2"></i> +20 100 000 0000</p>
+                <p><i class="fa-solid fa-location-dot text-cyan-400 ml-2"></i> مصر - البحيرة - كفر الدوار</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Auth Modal -->
+    <div id="login-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+            <button onclick="closeLoginModal()" class="absolute top-4 left-4 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-shield-halved text-cyan-400"></i> تسجيل دخول مدير الموقع
+            </h3>
+            <p class="text-slate-400 text-xs mb-4">ادخل كلمة المرور المعتمدة لإدارة محتوى الموقع والتعديل المباشر.</p>
+            <form onsubmit="handleLogin(event)">
+                <input type="password" id="admin-pass-input" placeholder="كلمة السر (الافتراضية: 123456)" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white mb-4 focus:border-cyan-500 focus:outline-none">
+                <button type="submit" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-xl transition">تسجيل الدخول</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        // Default Firebase Mock Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDemoConfigKeyForElQazzazSoftware123",
+            authDomain: "elqazzaz-software.firebaseapp.com",
+            projectId: "elqazzaz-software",
+            storageBucket: "elqazzaz-software.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef123456"
+        };
+
+        // Initial Dynamic Data
+        let appData = {
+            adminPass: "123456",
+            siteTitle: "مكتب القزاز للبرمجيات",
+            siteSubtitle: "El-Qazzaz Software Office",
+            heroHeading: "نحول أفكارك الرقمية إلى واقع برمجي مستقر واحترافي",
+            heroSubheading: "متخصصون في تطوير تطبيقات الويب التفاعلية، لوحات التحكم الإدارية، وأنظمة إدارة الأعمال والربط التلقائي بذكاء وسرعة.",
+            services: [
+                { id: 1, title: "تطبيقات الويب والأنظمة", desc: "بناء تطبيقات وبرامج ويب مخصصة باستخدام أحدث تقنيات الجافاسكريبت والـ UI/UX.", icon: "fa-laptop-code" },
+                { id: 2, title: "أتمتة الأعمال و Sheets API", desc: "ربط النماذج وقواعد البيانات مع Google Apps Script وتطبيقات الواتساب تلقائياً.", icon: "fa-robot" },
+                { id: 3, title: "لوحات التحكم الإدارية", desc: "تطوير شاشات متابعة وتقارير تفاعلية ذكية للمؤسسات والمدارس والمراكز.", icon: "fa-chart-pie" }
+            ],
+            projects: [
+                { id: 1, title: "نظام إدارة الجمعيات الشهرية", category: "تطبيق ويب متكامل", desc: "تطبيق لتتبع مدفوعات الأعضاء وإرسال تذكيرات وتنبيهات تلقائية.", tag: "Google Apps Script / Web" },
+                { id: 2, title: "لوحة المتابعة الإدارية المدرسية", category: "لوحة تحكم وتتبع", desc: "منصة لإدارة وتقييم الأداء والتوزيع الإداري للمستويات التعليمية.", tag: "Tailwind / Web PWA" },
+                { id: 3, title: "نظام نقاط البيع والمبيعات (POS)", category: "برنامج إداري", desc: "نظام مبيعات وتتبع مخزون مخصص للصيدليات والمتاجر والمراكز.", tag: "Web App / Local Storage" }
+            ]
+        };
+
+        let isAdmin = false;
+
+        // Load & Render Data
+        function initApp() {
+            const savedData = localStorage.getItem('elqazzaz_cloud_db');
+            if (savedData) {
+                appData = JSON.parse(savedData);
+            }
+            renderApp();
+        }
+
+        function renderApp() {
+            document.getElementById('site-title-text').innerText = appData.siteTitle;
+            document.getElementById('site-subtitle-text').innerText = appData.siteSubtitle;
+            document.getElementById('hero-heading').innerText = appData.heroHeading;
+            document.getElementById('hero-subheading').innerText = appData.heroSubheading;
+
+            // Render Services
+            const servicesContainer = document.getElementById('services-grid');
+            servicesContainer.innerHTML = appData.services.map(s => `
+                <div class="bg-slate-900 border border-slate-800 p-8 rounded-2xl relative group hover:border-cyan-500/50 transition">
+                    ${isAdmin ? `<button onclick="deleteService(${s.id})" class="absolute top-4 left-4 text-rose-500 hover:text-rose-400 text-xs font-bold bg-rose-950/50 p-2 rounded-lg"><i class="fa-solid fa-trash"></i></button>` : ''}
+                    <div class="w-14 h-14 rounded-xl bg-cyan-950/80 border border-cyan-500/30 text-cyan-400 flex items-center justify-center text-2xl mb-6">
+                        <i class="fa-solid ${s.icon}"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">${s.title}</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">${s.desc}</p>
+                </div>
+            `).join('');
+
+            // Render Projects
+            const projectsContainer = document.getElementById('projects-grid');
+            projectsContainer.innerHTML = appData.projects.map(p => `
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden relative group hover:border-cyan-500/50 transition flex flex-col justify-between p-6">
+                    ${isAdmin ? `<button onclick="deleteProject(${p.id})" class="absolute top-4 left-4 z-10 text-rose-500 hover:text-rose-400 text-xs font-bold bg-rose-950/80 p-2 rounded-lg"><i class="fa-solid fa-trash"></i></button>` : ''}
+                    <div>
+                        <span class="text-xs text-cyan-400 font-bold uppercase tracking-wider mb-2 block">${p.category}</span>
+                        <h3 class="text-xl font-bold text-white mb-3">${p.title}</h3>
+                        <p class="text-slate-400 text-sm mb-4 leading-relaxed">${p.desc}</p>
+                    </div>
+                    <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between">
+                        <span class="text-xs bg-slate-950 border border-slate-800 text-slate-400 px-3 py-1 rounded-full">${p.tag}</span>
+                        <i class="fa-solid fa-arrow-up-left-from-square text-slate-500 group-hover:text-cyan-400 transition"></i>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Auth Operations
+        function openLoginModal() { document.getElementById('login-modal').classList.remove('hidden'); }
+        function closeLoginModal() { document.getElementById('login-modal').classList.add('hidden'); }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const pass = document.getElementById('admin-pass-input').value;
+            if (pass === appData.adminPass) {
+                isAdmin = true;
+                document.getElementById('admin-bar').classList.remove('hidden');
+                document.getElementById('admin-login-btn').classList.add('hidden');
+                document.getElementById('add-service-btn').classList.remove('hidden');
+                document.getElementById('add-project-btn').classList.remove('hidden');
+                closeLoginModal();
+                renderApp();
+                alert('تم تسجيل الدخول بنجاح كـ أدمن!');
+            } else {
+                alert('كلمة المرور غير صحيحة!');
+            }
+        }
+
+        function logoutAdmin() {
+            isAdmin = false;
+            document.getElementById('admin-bar').classList.add('hidden');
+            document.getElementById('admin-login-btn').classList.remove('hidden');
+            document.getElementById('add-service-btn').classList.add('hidden');
+            document.getElementById('add-project-btn').classList.add('hidden');
+            renderApp();
+        }
+
+        // Save State
+        function saveData() {
+            localStorage.setItem('elqazzaz_cloud_db', JSON.stringify(appData));
+            renderApp();
+        }
+
+        // CRUD Operations
+        function deleteService(id) {
+            if (confirm('هل أنت تأكد من حذف هذه الخدمة؟')) {
+                appData.services = appData.services.filter(s => s.id !== id);
+                saveData();
+            }
+        }
+
+        function deleteProject(id) {
+            if (confirm('هل أنت تأكد من حذف هذا المشروع؟')) {
+                appData.projects = appData.projects.filter(p => p.id !== id);
+                saveData();
+            }
+        }
+
+        function openServiceModal() {
+            const title = prompt('اسم الخدمة الجديدة:');
+            const desc = prompt('وصف الخدمة:');
+            if (title && desc) {
+                appData.services.push({ id: Date.now(), title, desc, icon: 'fa-code' });
+                saveData();
+            }
+        }
+
+        function openProjectModal() {
+            const title = prompt('اسم المشروع الجديد:');
+            const category = prompt('تصنيف المشروع (مثال: تطبيق ويب):');
+            const desc = prompt('وصف المشروع:');
+            const tag = prompt('التقنيات المستخدمة (مثال: Apps Script / React):');
+            if (title && desc) {
+                appData.projects.push({ id: Date.now(), title, category: category || 'مشروع جديد', desc, tag: tag || 'Web' });
+                saveData();
+            }
+        }
+
+        function openChangePasswordModal() {
+            const newPass = prompt('ادخل كلمة السر الجديدة:');
+            if (newPass) {
+                appData.adminPass = newPass;
+                saveData();
+                alert('تم تغيير كلمة السر بنجاح!');
+            }
+        }
+
+        // Run Initializer
+        window.onload = initApp;
+    </script>
+</body>
+</html>
