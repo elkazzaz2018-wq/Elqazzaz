@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مكتب القزاز للبرمجيات | حلول وتطبيقات الويب والأنظمة</title>
+    <title>مكتب القزاز للبرمجيات | إشراف م. محمد عبدالوهاب القزاز</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -12,11 +12,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
-    
-    <!-- Firebase SDKs (v9 Compat for standalone HTML) -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
     <script>
         tailwind.config = {
@@ -42,26 +37,31 @@
     <style>
         body { font-family: 'Cairo', sans-serif; }
         .glass-header {
-            background: rgba(15, 23, 42, 0.85);
+            background: rgba(15, 23, 42, 0.88);
             backdrop-filter: blur(12px);
         }
-        .admin-editable:hover {
-            outline: 2px dashed #3b82f6;
-            outline-offset: 4px;
-            cursor: pointer;
+        .pulse-whatsapp {
+            animation: pulse-border 2s infinite;
+        }
+        @keyframes pulse-border {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+            70% { box-shadow: 0 0 0 15px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
         }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-cyan-500 selection:text-white">
 
-    <!-- Admin Notification Banner -->
+    <!-- Top Admin Bar (Visible when Admin Logged In) -->
     <div id="admin-bar" class="hidden sticky top-0 z-50 bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-700 text-white px-4 py-2 text-sm flex flex-wrap justify-between items-center shadow-lg border-b border-amber-400/30">
         <div class="flex items-center gap-2">
             <i class="fa-solid fa-user-shield text-lg animate-pulse"></i>
-            <span class="font-bold">وضع المدير مفعّل (Firebase Cloud Live Mode)</span>
-            <span class="text-xs bg-black/20 px-2 py-0.5 rounded-full">يمكنك التعديل المباشر على النصوص بالنقر عليها</span>
+            <span class="font-bold">وضع المدير مفعّل (إدارة المحتوى المباشرة)</span>
         </div>
         <div class="flex items-center gap-2 mt-2 sm:mt-0">
+            <button onclick="editSiteInfoModal()" class="bg-black/30 hover:bg-black/50 px-3 py-1 rounded text-xs transition flex items-center gap-1">
+                <i class="fa-solid fa-pen-to-square"></i> تعديل بيانات المكتب
+            </button>
             <button onclick="openChangePasswordModal()" class="bg-black/30 hover:bg-black/50 px-3 py-1 rounded text-xs transition flex items-center gap-1">
                 <i class="fa-solid fa-key"></i> تغيير كلمة السر
             </button>
@@ -79,11 +79,11 @@
                     <i class="fa-solid fa-code"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-black bg-gradient-to-r from-white via-slate-200 to-cyan-400 bg-clip-text text-transparent" id="site-title-text" data-key="siteTitle">
+                    <h1 class="text-xl font-black bg-gradient-to-r from-white via-slate-200 to-cyan-400 bg-clip-text text-transparent" id="site-title-text">
                         مكتب القزاز للبرمجيات
                     </h1>
-                    <p class="text-xs text-cyan-400 font-semibold" id="site-subtitle-text" data-key="siteSubtitle">
-                        El-Qazzaz Software Office
+                    <p class="text-xs text-cyan-400 font-semibold" id="site-founder-text">
+                        إشراف: م/ محمد عبدالوهاب القزاز
                     </p>
                 </div>
             </div>
@@ -91,7 +91,7 @@
             <div class="hidden md:flex items-center gap-8 text-sm font-bold text-slate-300">
                 <a href="#services" class="hover:text-cyan-400 transition">الخدمات</a>
                 <a href="#projects" class="hover:text-cyan-400 transition">معرض الأعمال</a>
-                <a href="#about" class="hover:text-cyan-400 transition">من نحن</a>
+                <a href="#about" class="hover:text-cyan-400 transition">عن المهندس</a>
                 <a href="#contact" class="hover:text-cyan-400 transition">تواصل معنا</a>
             </div>
 
@@ -99,35 +99,39 @@
                 <button id="admin-login-btn" onclick="openLoginModal()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3.5 py-2 rounded-xl font-bold transition flex items-center gap-1.5">
                     <i class="fa-solid fa-lock text-cyan-400"></i> دخول المدير
                 </button>
-                <a href="#contact" class="hidden sm:flex bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-sm font-bold px-5 py-2.5 rounded-xl shadow-lg shadow-cyan-600/20 border border-cyan-400/20 transition items-center gap-2">
+                <button onclick="openRequestProjectModal()" class="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-sm font-bold px-5 py-2.5 rounded-xl shadow-lg shadow-cyan-600/20 border border-cyan-400/20 transition flex items-center gap-2 cursor-pointer">
                     <span>طلب مشروع</span>
                     <i class="fa-solid fa-arrow-left"></i>
-                </a>
+                </button>
             </div>
         </div>
     </nav>
 
     <!-- Hero Section -->
-    <section class="relative py-20 lg:py-32 overflow-hidden bg-slate-950">
+    <section class="relative py-20 lg:py-28 overflow-hidden bg-slate-950">
         <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#0284c7_1px,transparent_1px)] [background-size:16px_16px]"></div>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-            <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 text-xs font-bold mb-6 shadow-inner">
-                <i class="fa-solid fa-sparkles text-amber-400"></i> حلول برمجية متطورة مصممة خصيصاً لأعمالك
-            </span>
-            <h1 class="text-4xl sm:text-6xl font-black text-white tracking-tight leading-tight max-w-4xl mx-auto mb-6" id="hero-heading" data-key="heroHeading">
+            
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/90 border border-cyan-500/30 text-cyan-300 text-xs sm:text-sm font-bold mb-6 shadow-inner">
+                <i class="fa-solid fa-user-gear text-amber-400"></i>
+                <span>بإشراف الخبير البرمجي: <strong class="text-white" id="hero-founder-name">م/ محمد عبدالوهاب القزاز</strong></span>
+            </div>
+
+            <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight max-w-4xl mx-auto mb-6" id="hero-heading">
                 نحول أفكارك الرقمية إلى واقع برمجي مستقر واحترافي
             </h1>
-            <p class="text-slate-400 text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed font-normal" id="hero-subheading" data-key="heroSubheading">
-                متخصصون في تطوير تطبيقات الويب التفاعلية، لوحات التحكم الإدارية، وأنظمة إدارة الأعمال والربط التلقائي بذكاء وسرعة.
+            <p class="text-slate-400 text-base sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed font-normal" id="hero-subheading">
+                متخصصون في تطوير تطبيقات الويب التفاعلية، لوحات التحكم الإدارية، أتمتة الأعمال، وأنظمة إدارة المؤسسات بذكاء وسرعة.
             </p>
+
             <div class="flex flex-wrap justify-center gap-4">
-                <a href="#projects" class="bg-cyan-600 hover:bg-cyan-500 text-white font-bold px-8 py-3.5 rounded-xl shadow-lg shadow-cyan-600/30 transition flex items-center gap-2">
-                    <span>استكشف الأعمال</span>
-                    <i class="fa-solid fa-laptop-code"></i>
-                </a>
-                <a href="https://wa.me/201000000000" target="_blank" class="bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 font-bold px-8 py-3.5 rounded-xl transition flex items-center gap-2">
-                    <i class="fa-brands fa-whatsapp text-emerald-400 text-lg"></i>
-                    <span>تواصل واتساب</span>
+                <button onclick="openRequestProjectModal()" class="bg-cyan-600 hover:bg-cyan-500 text-white font-bold px-8 py-3.5 rounded-xl shadow-lg shadow-cyan-600/30 transition flex items-center gap-2 cursor-pointer">
+                    <span>ابدأ طلب مشروعك الآن</span>
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+                <a id="hero-whatsapp-link" href="#" target="_blank" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-3.5 rounded-xl shadow-lg shadow-emerald-600/20 transition flex items-center gap-2">
+                    <i class="fa-brands fa-whatsapp text-xl"></i>
+                    <span>تواصل مباشر واتساب (<span class="site-phone-display">01013041847</span>)</span>
                 </a>
             </div>
         </div>
@@ -139,17 +143,17 @@
             <div class="flex justify-between items-end mb-12">
                 <div>
                     <h2 class="text-3xl font-black text-white mb-2 flex items-center gap-3">
-                        <i class="fa-solid fa-cubes text-cyan-500"></i> خدماتنا البرمجية
+                        <i class="fa-solid fa-cubes text-cyan-500"></i> الخدمات البرمجية
                     </h2>
-                    <p class="text-slate-400">باقة متكاملة من الحلول البرمجية الذكية لخدمة مؤسستك</p>
+                    <p class="text-slate-400">حلول متكاملة تناسب جميع أنشطتك التجارية والإدارية</p>
                 </div>
-                <button id="add-service-btn" onclick="openServiceModal()" class="hidden bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-sm transition flex items-center gap-2 shadow-lg">
+                <button id="add-service-btn" onclick="openServiceModal()" class="hidden bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-sm transition flex items-center gap-2 shadow-lg cursor-pointer">
                     <i class="fa-solid fa-plus"></i> إضافة خدمة جديدة
                 </button>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="services-grid">
-                <!-- Dynamic Content via Firestore -->
+                <!-- Dynamic Services Rendered Here -->
             </div>
         </div>
     </section>
@@ -162,85 +166,156 @@
                     <h2 class="text-3xl font-black text-white mb-2 flex items-center gap-3">
                         <i class="fa-solid fa-layer-group text-cyan-500"></i> معرض الأعمال والمشاريع
                     </h2>
-                    <p class="text-slate-400">نماذج متميزة تم إنشاؤها وتطويرها بمكتب القزاز</p>
+                    <p class="text-slate-400">نماذج متميزة تم تنفيذها تحت إشراف م/ محمد عبدالوهاب القزاز</p>
                 </div>
-                <button id="add-project-btn" onclick="openProjectModal()" class="hidden bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-sm transition flex items-center gap-2 shadow-lg">
+                <button id="add-project-btn" onclick="openProjectModal()" class="hidden bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-sm transition flex items-center gap-2 shadow-lg cursor-pointer">
                     <i class="fa-solid fa-plus"></i> إضافة مشروع جديد
                 </button>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="projects-grid">
-                <!-- Dynamic Content via Firestore -->
+                <!-- Dynamic Projects Rendered Here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Founder Section -->
+    <section id="about" class="py-16 bg-slate-900 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border border-slate-700/60 rounded-3xl p-8 sm:p-12 shadow-2xl relative overflow-hidden">
+                <div class="flex flex-col lg:flex-row items-center gap-8">
+                    <div class="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl bg-gradient-to-tr from-cyan-600 via-blue-600 to-amber-500 flex items-center justify-center text-white text-4xl sm:text-5xl font-black shadow-xl shrink-0 border-2 border-cyan-400/40">
+                        <i class="fa-solid fa-user-tie"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-3 mb-2">
+                            <h3 class="text-2xl sm:text-3xl font-black text-white" id="about-founder-title">
+                                م/ محمد عبدالوهاب القزاز
+                            </h3>
+                            <span class="bg-cyan-950 border border-cyan-500/40 text-cyan-400 text-xs font-bold px-3 py-1 rounded-full">المؤسس والمدير العام</span>
+                        </div>
+                        <p class="text-slate-300 text-base leading-relaxed mb-6">
+                            يسعدنا تقديم أرقى والحلول البرمجية المتكاملة، وتطوير الأنظمة الذكية التي تضمن رفع كفاءة الأعمال وأتمتة العمليات الإدارية بدقة عالية وأمان تام.
+                        </p>
+                        <div class="flex flex-wrap items-center gap-6 text-sm font-semibold text-slate-300">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-phone text-cyan-400"></i> <strong class="site-phone-display">01013041847</strong></span>
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-location-dot text-cyan-400"></i> البحيرة - كفر الدوار / جمهورية مصر العربية</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
     <!-- Footer -->
-    <footer id="contact" class="bg-slate-900 border-t border-slate-800 py-12 text-slate-400 text-sm">
+    <footer id="contact" class="bg-slate-950 border-t border-slate-800 py-12 text-slate-400 text-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
             <div>
-                <h3 class="text-white font-bold text-lg mb-3">مكتب القزاز للبرمجيات</h3>
+                <h3 class="text-white font-bold text-lg mb-2">مكتب القزاز للبرمجيات</h3>
+                <p class="text-cyan-400 text-xs font-bold mb-4">إشراف المهندس/ محمد عبدالوهاب القزاز</p>
                 <p class="text-slate-400 leading-relaxed mb-4">متخصصون في تصميم وتطوير تطبيقات الويب الحيوية والأنظمة الإدارية الذكية.</p>
                 <p class="text-xs text-slate-500">© 2026 مكتب القزاز للبرمجيات. جميع الحقوق محفوظة.</p>
             </div>
             <div>
                 <h4 class="text-white font-bold mb-3">روابط سريعة</h4>
                 <ul class="space-y-2">
-                    <li><a href="#services" class="hover:text-cyan-400">الخدمات</a></li>
-                    <li><a href="#projects" class="hover:text-cyan-400">معرض الأعمال</a></li>
-                    <li><a href="#contact" class="hover:text-cyan-400">الدعم والتواصل</a></li>
+                    <li><a href="#services" class="hover:text-cyan-400 transition">الخدمات البرمجية</a></li>
+                    <li><a href="#projects" class="hover:text-cyan-400 transition">معرض الأعمال</a></li>
+                    <li><a href="#about" class="hover:text-cyan-400 transition">عن المهندس المسؤول</a></li>
+                    <li><a href="#contact" class="hover:text-cyan-400 transition">الدعم والتواصل</a></li>
                 </ul>
             </div>
             <div>
-                <h4 class="text-white font-bold mb-3">تواصل معنا</h4>
-                <p class="mb-2"><i class="fa-solid fa-envelope text-cyan-400 ml-2"></i> info@elqazzaz-soft.com</p>
-                <p class="mb-2"><i class="fa-solid fa-phone text-cyan-400 ml-2"></i> +20 100 000 0000</p>
-                <p><i class="fa-solid fa-location-dot text-cyan-400 ml-2"></i> مصر - البحيرة - كفر الدوار</p>
+                <h4 class="text-white font-bold mb-3">تواصل معنا مباشر</h4>
+                <p class="mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-phone text-cyan-400"></i>
+                    <span>الهاتف / الواتساب:</span>
+                    <a href="tel:01013041847" class="text-white font-bold hover:text-cyan-400 dir-ltr font-mono text-base site-phone-display">01013041847</a>
+                </p>
+                <p class="mb-2 flex items-center gap-2">
+                    <i class="fa-brands fa-whatsapp text-emerald-400"></i>
+                    <a id="footer-whatsapp-link" href="#" target="_blank" class="text-emerald-400 hover:underline font-bold">محادثة واتساب مباشرة</a>
+                </p>
+                <p class="flex items-center gap-2"><i class="fa-solid fa-location-dot text-cyan-400"></i> مصر - البحيرة - كفر الدوار</p>
             </div>
         </div>
     </footer>
 
-    <!-- Auth Modal -->
-    <div id="login-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
-            <button onclick="closeLoginModal()" class="absolute top-4 left-4 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
-            <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-shield-halved text-cyan-400"></i> تسجيل دخول مدير الموقع
+    <!-- Floating WhatsApp Widget -->
+    <a id="floating-whatsapp" href="#" target="_blank" title="تواصل واتساب مباشر" class="fixed bottom-6 left-6 z-50 bg-emerald-500 hover:bg-emerald-600 text-white w-14 h-14 rounded-full flex items-center justify-center text-3xl shadow-2xl transition pulse-whatsapp">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
+
+    <!-- Project Request Modal -->
+    <div id="request-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative">
+            <button onclick="closeRequestProjectModal()" class="absolute top-5 left-5 text-slate-400 hover:text-white text-xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-xl bg-cyan-950 border border-cyan-500/30 text-cyan-400 flex items-center justify-center text-xl font-bold">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-white">طلب مشروع جديد</h3>
+                    <p class="text-xs text-slate-400">إشراف م/ محمد عبدالوهاب القزاز</p>
+                </div>
+            </div>
+            
+            <form onsubmit="submitProjectRequest(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">اسمك الكريم / المؤسسة *</label>
+                    <input type="text" id="req-client-name" required placeholder="مثال: أ. أحمد علي" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500 focus:outline-none text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">نوع المشروع أو النظام المطلوب *</label>
+                    <input type="text" id="req-project-type" required placeholder="مثال: تطبيق ويب / لوحة تحكم / أتمتة" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500 focus:outline-none text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">تفاصيل وملاحظات إضافية</label>
+                    <textarea id="req-project-details" rows="3" placeholder="اكتب نبذة مختصرة عن متطلباتك..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500 focus:outline-none text-sm"></textarea>
+                </div>
+                
+                <button type="submit" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-3 rounded-xl transition shadow-lg flex items-center justify-center gap-2 text-sm cursor-pointer">
+                    <i class="fa-brands fa-whatsapp text-lg"></i>
+                    <span>إرسال الطلب فوراً عبر الواتساب</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Login Modal -->
+    <div id="login-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl relative">
+            <button onclick="closeLoginModal()" class="absolute top-5 left-5 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                <i class="fa-solid fa-shield-halved text-cyan-400"></i> تسجيل دخول المدير
             </h3>
-            <p class="text-slate-400 text-xs mb-4">ادخل كلمة المرور المعتمدة لإدارة محتوى الموقع والتعديل المباشر.</p>
+            <p class="text-slate-400 text-xs mb-4">ادخل كلمة المرور لإدارة محتوى الموقع وتعديل بيانات الاتصال.</p>
             <form onsubmit="handleLogin(event)">
-                <input type="password" id="admin-pass-input" placeholder="كلمة السر (الافتراضية: 123456)" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white mb-4 focus:border-cyan-500 focus:outline-none">
-                <button type="submit" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-xl transition">تسجيل الدخول</button>
+                <input type="password" id="admin-pass-input" placeholder="كلمة السر (الافتراضية: 123456)" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white mb-4 focus:border-cyan-500 focus:outline-none text-sm">
+                <button type="submit" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-xl transition cursor-pointer text-sm">تسجيل الدخول</button>
             </form>
         </div>
     </div>
 
     <!-- Application Script -->
     <script>
-        // Default Firebase Mock Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyDemoConfigKeyForElQazzazSoftware123",
-            authDomain: "elqazzaz-software.firebaseapp.com",
-            projectId: "elqazzaz-software",
-            storageBucket: "elqazzaz-software.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "1:123456789:web:abcdef123456"
-        };
-
-        // Initial Dynamic Data
+        // Data State
         let appData = {
             adminPass: "123456",
             siteTitle: "مكتب القزاز للبرمجيات",
-            siteSubtitle: "El-Qazzaz Software Office",
+            founderName: "م/ محمد عبدالوهاب القزاز",
+            phone: "01013041847",
             heroHeading: "نحول أفكارك الرقمية إلى واقع برمجي مستقر واحترافي",
-            heroSubheading: "متخصصون في تطوير تطبيقات الويب التفاعلية، لوحات التحكم الإدارية، وأنظمة إدارة الأعمال والربط التلقائي بذكاء وسرعة.",
+            heroSubheading: "متخصصون في تطوير تطبيقات الويب التفاعلية، لوحات التحكم الإدارية، أتمتة الأعمال، وأنظمة إدارة المؤسسات بذكاء وسرعة.",
             services: [
-                { id: 1, title: "تطبيقات الويب والأنظمة", desc: "بناء تطبيقات وبرامج ويب مخصصة باستخدام أحدث تقنيات الجافاسكريبت والـ UI/UX.", icon: "fa-laptop-code" },
+                { id: 1, title: "تطبيقات الويب والأنظمة", desc: "بناء تطبيقات وبرامج ويب مخصصة باستخدام أحدث تقنيات البرمجة والـ UI/UX.", icon: "fa-laptop-code" },
                 { id: 2, title: "أتمتة الأعمال و Sheets API", desc: "ربط النماذج وقواعد البيانات مع Google Apps Script وتطبيقات الواتساب تلقائياً.", icon: "fa-robot" },
                 { id: 3, title: "لوحات التحكم الإدارية", desc: "تطوير شاشات متابعة وتقارير تفاعلية ذكية للمؤسسات والمدارس والمراكز.", icon: "fa-chart-pie" }
             ],
             projects: [
-                { id: 1, title: "نظام إدارة الجمعيات الشهرية", category: "تطبيق ويب متكامل", desc: "تطبيق لتتبع مدفوعات الأعضاء وإرسال تذكيرات وتنبيهات تلقائية.", tag: "Google Apps Script / Web" },
+                { id: 1, title: "نظام إدارة الجمعيات والمدفوعات", category: "تطبيق ويب متكامل", desc: "تطبيق لتتبع مدفوعات الأعضاء وإرسال تذكيرات وتنبيهات تلقائية.", tag: "Google Apps Script / Web" },
                 { id: 2, title: "لوحة المتابعة الإدارية المدرسية", category: "لوحة تحكم وتتبع", desc: "منصة لإدارة وتقييم الأداء والتوزيع الإداري للمستويات التعليمية.", tag: "Tailwind / Web PWA" },
                 { id: 3, title: "نظام نقاط البيع والمبيعات (POS)", category: "برنامج إداري", desc: "نظام مبيعات وتتبع مخزون مخصص للصيدليات والمتاجر والمراكز.", tag: "Web App / Local Storage" }
             ]
@@ -248,26 +323,58 @@
 
         let isAdmin = false;
 
-        // Load & Render Data
+        // Clean & Format Phone to WhatsApp Format
+        function getCleanPhone() {
+            let p = appData.phone.replace(/\D/g, '');
+            if (p.startsWith('0')) {
+                p = '20' + p.substring(1);
+            } else if (!p.startsWith('20')) {
+                p = '20' + p;
+            }
+            return p;
+        }
+
+        // Initialize App State
         function initApp() {
-            const savedData = localStorage.getItem('elqazzaz_cloud_db');
+            const savedData = localStorage.getItem('elqazzaz_cloud_db_v2');
             if (savedData) {
-                appData = JSON.parse(savedData);
+                try {
+                    appData = { ...appData, ...JSON.parse(savedData) };
+                } catch(e) { console.error(e); }
             }
             renderApp();
         }
 
+        // Render UI
         function renderApp() {
+            const cleanPhone = getCleanPhone();
+
+            // Text Updates
             document.getElementById('site-title-text').innerText = appData.siteTitle;
-            document.getElementById('site-subtitle-text').innerText = appData.siteSubtitle;
+            document.getElementById('site-founder-text').innerText = `إشراف: ${appData.founderName}`;
+            document.getElementById('hero-founder-name').innerText = appData.founderName;
+            document.getElementById('about-founder-title').innerText = appData.founderName;
             document.getElementById('hero-heading').innerText = appData.heroHeading;
             document.getElementById('hero-subheading').innerText = appData.heroSubheading;
 
-            // Render Services
+            // Phone Number Updates across the DOM
+            document.querySelectorAll('.site-phone-display').forEach(el => {
+                el.innerText = appData.phone;
+            });
+
+            // WhatsApp Dynamic URLs
+            const defaultMsg = encodeURIComponent(`مرحباً ${appData.founderName}، أود الاستفسار عن الخدمات البرمجية بمكتب القزاز.`);
+            const waUrl = `https://wa.me/${cleanPhone}?text=${defaultMsg}`;
+            
+            document.getElementById('hero-whatsapp-link').href = waUrl;
+            document.getElementById('footer-whatsapp-link').href = waUrl;
+            document.getElementById('floating-whatsapp').href = waUrl;
+
+            // Render Services Grid
             const servicesContainer = document.getElementById('services-grid');
             servicesContainer.innerHTML = appData.services.map(s => `
                 <div class="bg-slate-900 border border-slate-800 p-8 rounded-2xl relative group hover:border-cyan-500/50 transition">
-                    ${isAdmin ? `<button onclick="deleteService(${s.id})" class="absolute top-4 left-4 text-rose-500 hover:text-rose-400 text-xs font-bold bg-rose-950/50 p-2 rounded-lg"><i class="fa-solid fa-trash"></i></button>` : ''}
+                    ${isAdmin ? `<button onclick="deleteService(${s.id})" class="absolute top-4 left-4 text-rose-500 hover:text-rose-400 text-xs font-bold bg-rose-950/80 p-2 rounded-lg cursor-pointer"><i class="fa-solid fa-trash"></i></button>` : ''}
                     <div class="w-14 h-14 rounded-xl bg-cyan-950/80 border border-cyan-500/30 text-cyan-400 flex items-center justify-center text-2xl mb-6">
                         <i class="fa-solid ${s.icon}"></i>
                     </div>
@@ -276,11 +383,14 @@
                 </div>
             `).join('');
 
-            // Render Projects
+            // Render Projects Grid
             const projectsContainer = document.getElementById('projects-grid');
-            projectsContainer.innerHTML = appData.projects.map(p => `
+            projectsContainer.innerHTML = appData.projects.map(p => {
+                const projectMsg = encodeURIComponent(`مرحباً ${appData.founderName}، أرغب في طلب مشروع مشابه لـ (${p.title}).`);
+                const projectWaUrl = `https://wa.me/${cleanPhone}?text=${projectMsg}`;
+                return `
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden relative group hover:border-cyan-500/50 transition flex flex-col justify-between p-6">
-                    ${isAdmin ? `<button onclick="deleteProject(${p.id})" class="absolute top-4 left-4 z-10 text-rose-500 hover:text-rose-400 text-xs font-bold bg-rose-950/80 p-2 rounded-lg"><i class="fa-solid fa-trash"></i></button>` : ''}
+                    ${isAdmin ? `<button onclick="deleteProject(${p.id})" class="absolute top-4 left-4 z-10 text-rose-500 hover:text-rose-400 text-xs font-bold bg-rose-950/80 p-2 rounded-lg cursor-pointer"><i class="fa-solid fa-trash"></i></button>` : ''}
                     <div>
                         <span class="text-xs text-cyan-400 font-bold uppercase tracking-wider mb-2 block">${p.category}</span>
                         <h3 class="text-xl font-bold text-white mb-3">${p.title}</h3>
@@ -288,10 +398,41 @@
                     </div>
                     <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between">
                         <span class="text-xs bg-slate-950 border border-slate-800 text-slate-400 px-3 py-1 rounded-full">${p.tag}</span>
-                        <i class="fa-solid fa-arrow-up-left-from-square text-slate-500 group-hover:text-cyan-400 transition"></i>
+                        <a href="${projectWaUrl}" target="_blank" class="text-xs bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1">
+                            <span>اطلب مثلها</span>
+                            <i class="fa-brands fa-whatsapp text-sm"></i>
+                        </a>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
+        }
+
+        // Project Request Handlers
+        function openRequestProjectModal(presetType = '') {
+            if (presetType) {
+                document.getElementById('req-project-type').value = presetType;
+            }
+            document.getElementById('request-modal').classList.remove('hidden');
+        }
+
+        function closeRequestProjectModal() {
+            document.getElementById('request-modal').classList.add('hidden');
+        }
+
+        function submitProjectRequest(e) {
+            e.preventDefault();
+            const clientName = document.getElementById('req-client-name').value;
+            const projectType = document.getElementById('req-project-type').value;
+            const details = document.getElementById('req-project-details').value;
+
+            const cleanPhone = getCleanPhone();
+            const msg = `مرحباً ${appData.founderName} (مكتب القزاز للبرمجيات)،%0A%0A` +
+                        `*الاسم:* ${encodeURIComponent(clientName)}%0A` +
+                        `*نوع المشروع:* ${encodeURIComponent(projectType)}%0A` +
+                        (details ? `*التفاصيل:* ${encodeURIComponent(details)}` : '');
+
+            window.open(`https://wa.me/${cleanPhone}?text=${msg}`, '_blank');
+            closeRequestProjectModal();
         }
 
         // Auth Operations
@@ -309,7 +450,7 @@
                 document.getElementById('add-project-btn').classList.remove('hidden');
                 closeLoginModal();
                 renderApp();
-                alert('تم تسجيل الدخول بنجاح كـ أدمن!');
+                alert('تم تسجيل الدخول بنجاح لحساب المدير!');
             } else {
                 alert('كلمة المرور غير صحيحة!');
             }
@@ -324,13 +465,25 @@
             renderApp();
         }
 
-        // Save State
         function saveData() {
-            localStorage.setItem('elqazzaz_cloud_db', JSON.stringify(appData));
+            localStorage.setItem('elqazzaz_cloud_db_v2', JSON.stringify(appData));
             renderApp();
         }
 
-        // CRUD Operations
+        // CMS Actions
+        function editSiteInfoModal() {
+            const newFounder = prompt('اسم المهندس / المسؤول:', appData.founderName);
+            const newPhone = prompt('رقم الهاتف / الواتساب:', appData.phone);
+            const newTitle = prompt('عنوان الموقع:', appData.siteTitle);
+            
+            if (newFounder !== null) appData.founderName = newFounder;
+            if (newPhone !== null) appData.phone = newPhone;
+            if (newTitle !== null) appData.siteTitle = newTitle;
+            
+            saveData();
+            alert('تم تحديث البيانات بنجاح!');
+        }
+
         function deleteService(id) {
             if (confirm('هل أنت تأكد من حذف هذه الخدمة؟')) {
                 appData.services = appData.services.filter(s => s.id !== id);
@@ -358,7 +511,7 @@
             const title = prompt('اسم المشروع الجديد:');
             const category = prompt('تصنيف المشروع (مثال: تطبيق ويب):');
             const desc = prompt('وصف المشروع:');
-            const tag = prompt('التقنيات المستخدمة (مثال: Apps Script / React):');
+            const tag = prompt('التقنيات المستخدمة:');
             if (title && desc) {
                 appData.projects.push({ id: Date.now(), title, category: category || 'مشروع جديد', desc, tag: tag || 'Web' });
                 saveData();
@@ -366,7 +519,7 @@
         }
 
         function openChangePasswordModal() {
-            const newPass = prompt('ادخل كلمة السر الجديدة:');
+            const newPass = prompt('ادخل كلمة السر الجديدة للمدير:');
             if (newPass) {
                 appData.adminPass = newPass;
                 saveData();
@@ -374,7 +527,6 @@
             }
         }
 
-        // Run Initializer
         window.onload = initApp;
     </script>
 </body>
